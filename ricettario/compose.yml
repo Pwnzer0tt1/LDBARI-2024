@@ -1,0 +1,11 @@
+version: "3"
+services:
+  chall:
+    build: .
+    ports:
+      - 8002:8002
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 100M

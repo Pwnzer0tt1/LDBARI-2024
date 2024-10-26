@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe Book</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Navbar -->
+    <nav class="bg-blue-600 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">Recipe Book</h1>
+            <button onclick="openModal()" class="text-white bg-blue-800 px-4 py-2 rounded-lg hover:bg-blue-900 transition">
+                Login
+            </button>
+        </div>
+    </nav>
+
+    <!-- Recipe List -->
+    <div class="container mx-auto p-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Available Recipes</h2>
+        <div id="recipe-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Recipes will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+            <h2 class="text-2xl font-bold mb-4">Login</h2>
+            <label for="username" class="block text-lg font-semibold text-gray-700 mb-2">Username:</label>
+            <input type="text" id="username" class="w-full p-3 border border-gray-300 rounded-lg mb-4" placeholder="Enter username" />
+
+            <label for="password" class="block text-lg font-semibold text-gray-700 mb-2">Password:</label>
+            <input type="password" id="password" class="w-full p-3 border border-gray-300 rounded-lg mb-4" placeholder="Enter password" />
+
+            <button onclick="performLogin()" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+                Login
+            </button>
+        </div>
+    </div>
+
+    <!-- Login Message -->
+    <div class="container mx-auto mt-8">
+        <div id="login-message" class="hidden p-4 text-white font-semibold rounded-lg"></div>
+    </div>
+
+    <script>
+        // Function to open the login modal
+        function openModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        // Function to close the login modal
+        function closeModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        // Function to load recipes
+        async function loadRecipes() {
+            try {
+                const response = await fetch('/recipes');
+                const recipes = await response.json();
+                const recipeList = document.getElementById('recipe-list');
+
+                recipes.forEach(recipe => {
+                    const recipeCard = `
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h3 class="text-xl font-bold text-gray-800">${recipe.name}</h3>
+                            <p class="text-gray-700 mt-2"><strong>Ingredients:</strong> ${recipe.ingredients}</p>
+                            <p class="text-gray-700 mt-2"><strong>Instructions:</strong> ${recipe.instructions}</p>
+                        </div>
+                    `;
+                    recipeList.innerHTML += recipeCard;
+                });
+            } catch (error) {
+                console.error('Error fetching recipes:', error);
+            }
+        }
+
+        // Call loadRecipes on page load
+        loadRecipes();
+
+        // Function to perform login
+        async function performLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageElement = document.getElementById('login-message');
+
+            if (!username || !password) {
+                showMessage('Please enter both username and password.', 'bg-red-600');
+                return;
+            }
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(data.message || 'Login successful', 'bg-green-600');
+                } else {
+                    showMessage(data.message || 'Login failed', 'bg-red-600');
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'bg-red-600');
+            }
+
+            closeModal();
+        }
+
+        // Function to display the login message
+        function showMessage(message, bgColor) {
+            const messageElement = document.getElementById('login-message');
+            messageElement.textContent = message;
+            messageElement.className = `p-4 text-white font-semibold rounded-lg ${bgColor}`;
+            messageElement.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

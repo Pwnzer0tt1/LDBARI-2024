@@ -1,0 +1,11 @@
+version: "3"
+services:
+  activate-linux:
+    build: .
+    ports:
+      - 8003:8003
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 100M
